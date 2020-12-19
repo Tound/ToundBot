@@ -19,7 +19,8 @@ from dotenv import load_dotenv
 
 client = commands.Bot(command_prefix='!')  # discord.Client()
 load_dotenv()
-CLIENT_TOKEN = os.getenv("CLIENT_TOKEN")
+CLIENT_TOKEN = os.getenv('CLIENT_TOKEN')
+
 mute = False
 
 profanityLevel = 0
@@ -434,9 +435,6 @@ async def gamesnight(ctx, *args):
             newGamesNight = gamesnight.gamesnight(args)
             currentGamesNights.append(newGamesNight)
             ctx.send(newGamesNight.getAnnouncement())
-
-
-
 
 
 client.run(CLIENT_TOKEN)
