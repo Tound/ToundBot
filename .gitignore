@@ -3,7 +3,7 @@ twitchclip.mp4
 toffclip.mp4
 toff.mp3
 tound.mp3
-vars.env
+.env
 database.py
 log.txt
 resnet50_weights_tf_dim_ordering_tf_kernels.h5
