@@ -11,25 +11,28 @@ import json
 import threading
 import tournament
 import gamesnight
+from poll import *
 from dotenv import load_dotenv
+
 
 
 #ToundBot Version 2.11
 #discord.py Version 1.4.1
 
 client = commands.Bot(command_prefix='!')  # discord.Client()
+
+#Load Environment variables
 load_dotenv()
 CLIENT_TOKEN = os.getenv('CLIENT_TOKEN')
 
+#Global variables
 mute = False
-
 profanityLevel = 0
-
 version = 2.11
 livetime = ""
-
 currentTournaments = []
 currentGamesNights = []
+currentPoll = []
 
 # ====================EXTRAS========================
 def updateLeaderboard():
@@ -407,13 +410,13 @@ async def gamesnight(ctx, *args):
     global currentGamesNights
     if len(args) == 0:
         if len(currentGamesNights) == 0:
-            ctx.send("There are no Games Night setup! \nTo create a Games Night use '!gamesnight' followed by variables such as: time, players and games")
+            await ctx.send("There are no Games Nights setup! \nTo create a Games Night use '!gamesnight' followed by variables such as: time, players and games")
         else:
             count = len(currentGamesNights)
             string = ''
             for i in currentGamesNights:
                 string = string + f"{i+1}." + currentGamesNights[i].getAnnouncement() + "\n"
-            ctx.send(f"There are currently {count} Games nights open! \n " + string)
+            await ctx.send(f"There are currently {count} Games nights open! \n " + string)
 
     else:
         if args[0] == "clear":
@@ -430,12 +433,55 @@ async def gamesnight(ctx, *args):
             del args[4:] #truncate args
             newGamesNight = gamesnight.gamesnight(args)
             currentGamesNights.append(newGamesNight)
-            ctx.send(newGamesNight.getAnnouncement())
+            await ctx.send(newGamesNight.getAnnouncement())
         else:
             newGamesNight = gamesnight.gamesnight(args)
             currentGamesNights.append(newGamesNight)
-            ctx.send(newGamesNight.getAnnouncement())
+            await ctx.send(newGamesNight.getAnnouncement())
 
+@client.command()
+async def poll(ctx,*args):
+    global currentPoll
+    if len(currentPoll) == 0:
+        pass
+    if len(args) == 0:
+        if len(currentPoll) == 0:
+            await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
+        else:
+            results = currentPoll[0].results()
+            await ctx.send(results)
+    elif len(args) > 2:
+        if len(currentPoll) == 0:
+            if args[0] == "new":
+                newPoll = poll(args)
+                currentPoll.append(newPoll)
+                await ctx.send("Poll created")
+        else:
+            await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
+    elif args[0] == "end":
+        if len(currentPoll) == 0:
+            await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
+        else:
+            results = currentPoll[0].close()
+            await ctx.send(results)
+            currentPoll = []
+    else:
+        await ctx.send("oof")
+
+@client.command()
+async def vote(ctx,vote):
+    if len(currentPoll) != 0:
+        if vote in currentPoll[0].getChoices():
+            currentPoll[0].vote(vote)
+            results = currentPoll[0].results()
+            await ctx.send(results)
+        else:
+            currentPoll[0].addChoice(vote)
+            await ctx.send(f"{vote} added into possible choices!")
+            results = currentPoll[0].results()
+            await ctx.send(results)
+    else:
+        await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
 
 client.run(CLIENT_TOKEN)
 
@@ -467,3 +513,7 @@ client.run(CLIENT_TOKEN)
 #C++ GUI
 #Env file for ID
 #Licensing
+#Bug report
+#Refactor
+#Poll
+#Votes
