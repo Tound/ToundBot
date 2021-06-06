@@ -1,0 +1,4 @@
+disord.py
+opencv-python
+python-dotenv
+pymongo
