@@ -1,0 +1,7 @@
+2021-09-12 17:02:10.982169: W tensorflow/stream_executor/platform/default/dso_loader.cc:55] Could not load dynamic library 'cudart64_101.dll'; dlerror: cudart64_101.dll not found
+2021-09-12 17:02:10.982233: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+websocket connection is closing.
+Logged in as
+ToundBot
+350611730918801418
+READY!

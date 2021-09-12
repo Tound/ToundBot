@@ -28,11 +28,12 @@ CLIENT_TOKEN = os.getenv('CLIENT_TOKEN')
 #Global variables
 mute = False
 profanityLevel = 0
-version = 2.11
+version = 2.12
 livetime = ""
 currentTournaments = []
 currentGamesNights = []
-currentPoll = []
+#currentPoll = []
+currentPoll = None
 
 # ====================EXTRAS========================
 def updateLeaderboard():
@@ -45,8 +46,6 @@ def updateLeaderboard():
             print(member)
 
     #with open('leaderboard.json') as f:
-
-
 
 def grammarCheck(message,level):
     if message != '' and level != 0:
@@ -94,6 +93,7 @@ def checkForGoodWords(content):
 # Bot ready in cmd
 @client.event
 async def on_ready():
+    global livetime
     print('Logged in as')
     print('ToundBot')
     print('350611730918801418')
@@ -101,19 +101,16 @@ async def on_ready():
     livetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     updateLeaderboard()
 
-
 good_words = ['lovely', 'gorgeous', 'cutie', 'ily']
-
 
 @client.event
 async def on_member_join(member):
     print('{} has joined, welcome!'.format(member))
     #updateLeaderBoard()
 
-
 @client.event
 async def on_member_remove(member):
-    print('{} has left :('.format(member))
+    print(f'{member} has left :(')
 
 @client.event
 async def on_message(message):
@@ -126,7 +123,7 @@ async def on_message(message):
                 with open("log.txt", 'a+', encoding='utf-8') as f:
                     t = datetime.now()
                     currentTime = t.strftime("%d/%m/%Y %H:%M:%S")
-                    f.write("{} - {} wrote: {} // Channel: {} // ACTION: Message removed \n". format(currentTime, message.author, message.content, channel.name))
+                    f.write(f"{currentTime} - {message.author} wrote: {message.content} // Channel: {channel.name} // ACTION: Message removed \n")
                     f.close()
                 return
 
@@ -165,14 +162,27 @@ async def on_message(message):
 @client.command()
 @commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount=10):
-    await ctx.channel.purge(limit=amount)
+    if amount > 10:
+        await ctx.send("You can only clear a maximum of 10 messages!")
+    else:
+        await ctx.channel.purge(limit=amount)
 
 @client.command()
 async def botinfo(ctx):
     await ctx.send(f"Bot name: ToundBot \nVersion: {version} \nLive since: {livetime}")
 
+@client.command()
+async def about(ctx):
+    await ctx.send(f"ToundBot is a Discord Chat Bot created by Tound for an experimental project. "
+                   f"\n The bot is written in Python and has various functions.")
 
 @client.command()
+async def remove(ctx):
+    await ctx.send("ToundBot is being shut down!")
+    exit(1)
+
+@client.command()
+@commands.has_role("🤠 Moderator")
 async def sleep(ctx):
     global mute
     if not mute:
@@ -181,8 +191,8 @@ async def sleep(ctx):
     else:
         await ctx.send('ToundBot is already sleeping.')
 
-
 @client.command()
+@commands.has_role("🤠 Moderator")
 async def wake(ctx):
     global mute
     if not mute:
@@ -193,6 +203,7 @@ async def wake(ctx):
         mute = False
 
 
+# Voice Channel
 @client.command()
 async def joinVC(ctx, vChannel):
     VC = findAbbrev(vChannel)
@@ -205,16 +216,10 @@ async def joinVC(ctx, vChannel):
     ctx.voice_client.stop()
     await ctx.voice_client.disconnect()
 
-
 @client.command()
 async def leaveVC(ctx):
     await ctx.voice_client.disconnect()
     await ctx.send('ToundBot is leaving VC')
-
-
-@client.command()
-async def toundsgf(ctx):
-    await ctx.send(file=discord.File('camila.jpg'))
 
 @client.command()
 async def disconnect(ctx):
@@ -223,6 +228,10 @@ async def disconnect(ctx):
     else:
         await ctx.send('ToundBot aint even in a damn VC...')
 
+# Extras
+@client.command()
+async def toundsgf(ctx):
+    await ctx.send(file=discord.File('camila.jpg'))
 
 @client.command()
 async def complimentme(ctx):
@@ -302,6 +311,7 @@ def checkRole(author):
 
 #Drag all members from one VC to another
 @client.command()
+@commands.has_role("324294790609108992")
 async def drag(ctx, ch1, ch2):
     role_ok = checkRole(ctx.author)
     if role_ok == True:
@@ -370,7 +380,7 @@ async def currentProfLevel(ctx):
 @client.command()
 async def sr(ctx, *args):
     VC = client.get_channel()
-    name =  args[0]
+    name = args[0]
     await ctx.send(f"Now playing {name} in {VC}")
     #search yt for vid
 
@@ -439,34 +449,42 @@ async def gamesnight(ctx, *args):
             currentGamesNights.append(newGamesNight)
             await ctx.send(newGamesNight.getAnnouncement())
 
+# Poll
 @client.command()
 async def poll(ctx,*args):
     global currentPoll
-    if len(currentPoll) == 0:
-        pass
-    if len(args) == 0:
-        if len(currentPoll) == 0:
-            await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
+    if currentPoll != None: # If there is no poll
+        # If the command has no arguments
+        if len(args) == 0:
+            if len(currentPoll) == 0:
+                await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
+            else:
+                results = currentPoll.results()
+                await ctx.send(results)
+
+        # If the command has arguments
+        elif len(args) > 2:
+            if len(currentPoll) == 0:
+                if args[0] == "new":
+                    newPoll = poll(args)
+                    currentPoll.append(newPoll)
+                    await ctx.send("Poll created")
+            else:
+                await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
+
+        elif args[0] == "end":
+            if len(currentPoll) == 0:
+                await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
+            else:
+                results = currentPoll.close()
+                await ctx.send(results)
+                currentPoll = None
         else:
-            results = currentPoll[0].results()
-            await ctx.send(results)
-    elif len(args) > 2:
-        if len(currentPoll) == 0:
-            if args[0] == "new":
-                newPoll = poll(args)
-                currentPoll.append(newPoll)
-                await ctx.send("Poll created")
-        else:
-            await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
-    elif args[0] == "end":
-        if len(currentPoll) == 0:
-            await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
-        else:
-            results = currentPoll[0].close()
-            await ctx.send(results)
-            currentPoll = []
+            await ctx.send("oof")
     else:
-        await ctx.send("oof")
+        await ctx.send("The results of the current poll is as follows!")
+        results = currentPoll.results()
+        await ctx.send(results)
 
 @client.command()
 async def vote(ctx,vote):

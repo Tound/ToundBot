@@ -1,0 +1,17 @@
+Checking packages
+Requirement already satisfied: discord.py in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from -r requirements.txt (line 1)) (1.7.3)
+Requirement already satisfied: opencv-python in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from -r requirements.txt (line 2)) (4.2.0.34)
+Requirement already satisfied: python-dotenv in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from -r requirements.txt (line 3)) (0.15.0)
+Requirement already satisfied: pymongo in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from -r requirements.txt (line 4)) (3.11.0)
+Requirement already satisfied: aiohttp<3.8.0,>=3.6.0 in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from discord.py->-r requirements.txt (line 1)) (3.6.3)
+Requirement already satisfied: numpy>=1.11.3 in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from opencv-python->-r requirements.txt (line 2)) (1.19.3)
+Requirement already satisfied: multidict<5.0,>=4.5 in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from aiohttp<3.8.0,>=3.6.0->discord.py->-r requirements.txt (line 1)) (4.7.6)
+Requirement already satisfied: attrs>=17.3.0 in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from aiohttp<3.8.0,>=3.6.0->discord.py->-r requirements.txt (line 1)) (19.3.0)
+Requirement already satisfied: chardet<4.0,>=2.0 in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from aiohttp<3.8.0,>=3.6.0->discord.py->-r requirements.txt (line 1)) (3.0.4)
+Requirement already satisfied: yarl<1.6.0,>=1.0 in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from aiohttp<3.8.0,>=3.6.0->discord.py->-r requirements.txt (line 1)) (1.4.2)
+Requirement already satisfied: async-timeout<4.0,>=3.0 in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from aiohttp<3.8.0,>=3.6.0->discord.py->-r requirements.txt (line 1)) (3.0.1)
+Requirement already satisfied: idna-ssl>=1.0 in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from aiohttp<3.8.0,>=3.6.0->discord.py->-r requirements.txt (line 1)) (1.1.0)
+Requirement already satisfied: typing-extensions>=3.6.5 in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from aiohttp<3.8.0,>=3.6.0->discord.py->-r requirements.txt (line 1)) (3.7.4.2)
+Requirement already satisfied: idna>=2.0 in c:\users\thomas\appdata\local\programs\python\python36\lib\site-packages (from idna-ssl>=1.0->aiohttp<3.8.0,>=3.6.0->discord.py->-r requirements.txt (line 1)) (2.9)
+Running ToundBotV2
+python
