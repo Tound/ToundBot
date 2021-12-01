@@ -1,0 +1,50 @@
+{
+  "functions": [
+    {
+      "name": "help",
+      "details": []
+    },
+    {
+      "name": "drag",
+      "details": ["Command: *!drag* \n",
+                   "Follow the command with the channel you are ",
+                   "dragging from followed by the channel that you ",
+                   "would like to drag to. You can use known abbreviations for channels too!"]
+    },
+    {
+      "name": "poll",
+      "details": ["Command: *!poll* \\n",
+                "Use the !poll command to view poll results or create a new poll.\\n",
+                "If a poll is open, this command will show the poll's current results.\\n",
+                "To create a new poll use the 'new' keyword after the command.\\n",
+                "If you only want 1 vote per user, add the 'once' tag after the word 'new'\\n",
+                "The layout of the command is as follows:\\n",
+                "!poll new <optional once> <Question>, <Answer 1>, <Answer 2>, ...\\n\\n",
+                "Example: \n!poll new Am I Cool?, Yes, No\\n\\n",
+                "!poll new once Am I Cool?, Yes, No\"),\n"]
+    },
+    {
+      "name": "whatsthis",
+      "details": ["Command: *!whatsthis* \n",
+                   "This command uses OpenCV for image recognition. ",
+                   "Follow !whatsthis with an image. E.g. !whatsthis apple.jpg"]
+    },
+        {
+      "name": "complimentme",
+      "details": ["Command: *!complimentme* \n",
+                  "Spits out a gorgeous compliment to brighten your day!"]
+    },
+    {
+      "name": "default",
+      "details": ["Command: *Unknown* \n",
+                 "Follow !help with a command name ",
+                 "that you would like to have help about"]
+    },
+    {
+      "name": "default",
+      "details": ["Command: *Unknown* \n",
+                 "Follow !help with a command name ",
+                 "that you would like to have help about"]
+    }
+  ]
+}

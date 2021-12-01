@@ -81,10 +81,13 @@ class Poll:
                 indexes.append(i)
 
         if len(indexes) > 1:
-            string += f"Winners: {self.choices[self.votes.index(max(self.votes))]}"
-            for i in range(0,len(indexes)):
-                string += f"{self.choices[i]}"
+            print(self.votes.index(max(self.votes)))
+            print(self.choices[self.votes.index(max(self.votes))])
+            string += f"Winners: **{self.choices[self.votes.index(max(self.votes))]}**, "
+            for i in range(1,len(indexes)):
+                string += f"**{self.choices[i]}**, "
+            string = string[:-2]
         else:
-            string += f"Winner: {self.choices[indexes[0]]}"
+            string += f"Winner: **{self.choices[indexes[0]]}**"
 
         return string

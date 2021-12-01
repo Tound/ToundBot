@@ -8,3 +8,9 @@ log.txt
 resnet50_weights_tf_dim_ordering_tf_kernels.h5
 lol.mp3
 logfile.txt
+.idea/
+__pycache__/
+venv/
+sounds/
+/*.mp3
+*.mp3

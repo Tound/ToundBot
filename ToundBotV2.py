@@ -1,8 +1,11 @@
+import asyncio
 import sys
 import os
 import discord
 from discord.ext import commands
 import random
+
+from soundboard import *
 
 import ImageRecog
 import database
@@ -14,36 +17,43 @@ import gamesnight
 from poll import *
 from dotenv import load_dotenv
 
-#ToundBot Version 2.14
-#discord.py Version 1.4.1
+# ToundBot Version 2.14
+# discord.py Version 1.4.1
 
-client = commands.Bot(command_prefix='!')  # discord.Client()
+intents = discord.Intents.default()
+intents.members = True
 
-#Load Environment variables
+
+client = commands.Bot(command_prefix='!',intents=intents)  # discord.Client()
+
+# Load Environment variables
 load_dotenv()
 CLIENT_TOKEN = os.getenv('CLIENT_TOKEN')
 
-#Global variables
+# Global variables
 mute = False
 profanityLevel = 0
 version = 2.14
 livetime = ""
 currentTournaments = []
 currentGamesNights = []
-#currentPoll = []
+# currentPoll = []
 currentPoll = None
 
 # ====================EXTRAS========================
+
+
 def updateLeaderboard():
 
     for guild in client.guilds:
         print(len(guild.members))
         for member in guild.members:
             yield member
-            #print(guild.name)
+            # print(guild.name)
             print(member)
 
-    #with open('leaderboard.json') as f:
+    # with open('leaderboard.json') as f:
+
 
 def grammarCheck(message,level):
     if message != '' and level != 0:
@@ -101,14 +111,20 @@ async def on_ready():
 
 good_words = ['lovely', 'gorgeous', 'cutie', 'ily']
 
+
 @client.event
 async def on_member_join(member):
     print('{} has joined, welcome!'.format(member))
-    #updateLeaderBoard()
+    # updateLeaderBoard()
+
 
 @client.event
 async def on_member_remove(member):
     print(f'{member} has left :(')
+
+
+########################### ON MESSAGE ###########################
+
 
 @client.event
 async def on_message(message):
@@ -131,10 +147,6 @@ async def on_message(message):
         if message.content.startswith('Toundy'):
             await channel.send('YOU CALLED')
 
-        elif message.content.startswith('remove'):
-            await channel.send('ToundBot shutting down')
-            exit()
-
         elif message.content.startswith("!unmod ben"):
             await channel.send('Unmodding Skidaddlemynoodle in 5 seconds...')
             for i in range(4, 0, -1):
@@ -145,15 +157,6 @@ async def on_message(message):
             await message.add_reaction('\U0001F970')
             await message.add_reaction('\U00002764')
 
-        elif message.content.startswith('!delmessages'):
-            content = message.content.split(' ')
-            if len(content) > 2:
-                await channel.send('{} invalid use of command; 1 arg required'.format(message.author))
-                return
-            channelMessages = await channel.history(limit=int(content[1]))
-            for i in range(len(channelMessages)):
-                await message.delete(channelMessages[i])
-            await channel.send('{} messages deleted'.format(int(content[1])))
     await client.process_commands(message)
 
 
@@ -165,14 +168,19 @@ async def clear(ctx, amount=10):
     else:
         await ctx.channel.purge(limit=amount)
 
+########################### ABOUT THE BOT ###########################
+
+
 @client.command()
 async def botinfo(ctx):
     await ctx.send(f"Bot name: ToundBot \nVersion: {version} \nLive since: {livetime}")
+
 
 @client.command()
 async def about(ctx):
     await ctx.send(f"ToundBot is a Discord Chat Bot created by Tound for an experimental project. "
                    f"\nThe bot is written in Python and has various functions.")
+
 
 @client.command()
 async def functions(ctx):
@@ -182,10 +190,12 @@ async def functions(ctx):
                    "Create Tournaments, see !tournament\n"
                    "More to be added...")
 
+
 @client.command()
 async def remove(ctx):
     await ctx.send("ToundBot is being shut down!")
     exit(1)
+
 
 @client.command()
 @commands.has_role("🤠 Moderator")
@@ -196,6 +206,7 @@ async def sleep(ctx):
         await ctx.send('z z Z Z Z')
     else:
         await ctx.send('ToundBot is already sleeping.')
+
 
 @client.command()
 @commands.has_role("🤠 Moderator")
@@ -209,33 +220,91 @@ async def wake(ctx):
         mute = False
 
 
+########################### VOICE FUNCTIONS ###########################
+
 # Voice Channel
 @client.command()
 async def joinVC(ctx, vChannel):
-    VC = findAbbrev(vChannel)
+    vc = findAbbrev(vChannel)
 
-    await VC.connect()
-    source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("toff.mp3"))
-    source.volume = 5
-    ctx.voice_client.play(source, after=lambda e: print("Done"))
+    await vc.connect()
     await ctx.send(f'ToundBot is joining {vChannel}')
-    #ctx.voice_client.stop()
-    #await ctx.voice_client.disconnect()
+
 
 @client.command()
 async def leaveVC(ctx):
-    if ctx.voice_client != None:
+    if ctx.voice_client is not None:
         await ctx.voice_client.disconnect()
         await ctx.send('ToundBot is leaving VC')
     else:
         await ctx.send('ToundBot is not in a VC')
 
+
 @client.command()
-async def disconnect(ctx):
-    if client.is_connected():
-        client.disconnect
+async def play(ctx, *args):
+    sound = ' '.join(args)
+    sound_path = get_sound_path(sound)
+
+    if sound_path is None:
+        await ctx.send("Error, Unknown sound")
+        return -1
     else:
-        await ctx.send('ToundBot aint even in a damn VC...')
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(sound_path))
+
+    if ctx.voice_client is None:
+        v_channel = ctx.author.voice.channel
+        await v_channel.connect()
+
+        ctx.voice_client.play(source, after=lambda e: print("Done"))
+        while ctx.voice_client.is_playing():
+            await asyncio.sleep(0.1)
+
+        ctx.voice_client.stop()
+        await ctx.voice_client.disconnect()
+
+    else:
+        ctx.voice_client.play(source, after=lambda e: print("Done"))
+        while ctx.voice_client.is_playing():
+            await asyncio.sleep(0.1)
+        ctx.voice_client.stop()
+
+
+@client.event
+async def on_voice_state_update(member, before, after):
+    if member.id == 141303058528337920 and member.voice is not None:
+        await member.voice.channel.connect()
+        sound_path = "sounds/tokyo-drift.mp3"
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(sound_path))
+        guild = client.get_guild(222837782664577026)
+        voice_client: discord.VoiceClient = discord.utils.get(client.voice_clients, guild=guild)
+
+        voice_client.play(source, after=lambda e: print("Done"))
+
+        while voice_client.is_playing():
+            await asyncio.sleep(0.1)
+
+        voice_client.stop()
+        await voice_client.disconnect()
+
+    elif member.id == 345917415215071234 and member.voice is not None:
+        await member.voice.channel.connect()
+        sound_path = "sounds/pierre.mp3"
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(sound_path))
+        guild = client.get_guild(222837782664577026)
+        voice_client: discord.VoiceClient = discord.utils.get(client.voice_clients, guild=guild)
+
+        voice_client.play(source, after=lambda e: print("Done"))
+
+        while voice_client.is_playing():
+            await asyncio.sleep(0.1)
+
+        voice_client.stop()
+        await voice_client.disconnect()
+
+    else:
+        pass
+
+
 
 # Extras
 @client.command()
@@ -266,6 +335,8 @@ async def on_command_error(ctx, error):
     else:
         print(error)
 
+
+########################### IMAGE RECOGNITION ###########################
 @client.command()
 async def whatsthis(ctx, thing):
     await ctx.send('Hmmmm, I think that is a... hmmmm')
@@ -298,6 +369,7 @@ async def whatsthis(ctx, thing):
         print(sys.exc_info()[0])
         await ctx.send("Oh snap, I need to learn that")
 
+
 def findAbbrev(ch):
     if ch == 'general' or ch == 'g' or ch == '1':
         return client.get_channel(238374962262441985) #"🌌 GENERAL CHIT CHAT"
@@ -320,12 +392,16 @@ def checkRole(author):
 
 #Drag all members from one VC to another
 @client.command()
-@commands.has_role("324294790609108992")
+@commands.has_role(244969009076764673)
 async def drag(ctx, ch1, ch2):
     role_ok = checkRole(ctx.author)
     if role_ok == True:
         channel1 = findAbbrev(ch1)
         channel2 = findAbbrev(ch2)
+        if not (type(channel1) == discord.VoiceChannel and type(channel2) == discord.VoiceChannel):
+            await ctx.send("Channel specified must be voice channels!")
+            return -1
+
         if channel1 == channel2:
             await ctx.send("Members are already in the specified channel")
         else:
@@ -357,16 +433,28 @@ async def helpme(ctx, thing):
         await ctx.send("Command: *Unknown* \n"
                        "Follow !help with a command name "
                        "that you would like to have help about")
+    elif thing == 'poll':
+        await ctx.send("Command: *!poll* \n"
+                       "Use the !poll command to view poll results or create a new poll.\n"
+                       "If a poll is open, this command will show the poll's current results.\n"
+                       "To create a new poll use the 'new' keyword after the command.\n"
+                       "If you only want 1 vote per user, add the 'once' tag after the word 'new'.\n"
+                       "The layout of the command is as follows:\n"
+                       "!poll new <optional once> <Question>, <Answer 1>, <Answer 2>, ...\n\n"
+
+                       "Example: \n!poll new Am I Cool?, Yes, No\n"
+                       "!poll new once Am I Cool?, Yes, No")
     else:
         await ctx.send("That variable name is unknown...")
 
 
 @client.command()
+@commands.has_role(244969009076764673)
 async def setProfLevel(ctx, level):
-    role_ok = checkRole(ctx.author)
-    if role_ok != True:
-        await ctx.send("Your role is not high enough for this command!")
-        return
+    #role_ok = checkRole(ctx.author)
+    #if role_ok != True:
+    #    await ctx.send("Your role is not high enough for this command!")
+    #    return
 
     global profanityLevel
     if int(level) == 0:
@@ -465,14 +553,12 @@ async def gamesnight(ctx, *args):
 @client.command()
 async def poll(ctx,*args):
     global currentPoll
-
     print(args)
-
     if currentPoll is None: # If there is no poll
         # If the command has no arguments
-        if args is None:
-            results = currentPoll.results()
-            await ctx.send(results)
+
+        if args == ():
+            await ctx.send("A poll is not open, you can learn how to create a poll by typing '!helpme poll'")
 
         # If the command has arguments
         #!poll new lMAOOOO, me, you
@@ -513,52 +599,33 @@ async def poll(ctx,*args):
             del currentPoll
             currentPoll = None
 
-
-    elif len(args) > 1  and args[0] == "vote":
-        content_string = ' '.join(args[1:])
-        content_string = content_string.split(", ")
-
-        choice = content_string[0]
-
-        err_code = currentPoll.vote(ctx.author,choice)
-        if err_code == 1:
-            await ctx.send(f"{ctx.author}, you have already voted - Vote disallowed")
-        elif err_code == 0:
-            await ctx.send(f"{ctx.author}, vote added")
-            await ctx.send(currentPoll.results())
-        elif err_code == -1:
-            await ctx.send(f"{ctx.send}, voting option ({choice}) was not an option in the poll")
-        else:
-            await ctx.send("Unknown error with voting")
-
     else:
         await ctx.send("The results of the current poll is as follows!")
         results = currentPoll.results()
         await ctx.send(results)
 
 
-
-
-
 @client.command()
-async def vote(ctx,vote):
-    if len(currentPoll) != 0:
-        if vote in currentPoll[0].getChoices():
-            currentPoll[0].vote(vote)
-            results = currentPoll[0].results()
-            await ctx.send(results)
+async def vote(ctx,*args):
+    if currentPoll is not None:
+        vote = ' '.join(args)
+        err_code = currentPoll.vote(ctx.author,vote)
+        if err_code == 1:
+            await ctx.send(f"{ctx.author}, you have already voted - Vote disallowed")
+        elif err_code == 0:
+            await ctx.send(f"{ctx.author}, vote added")
+            await ctx.send(currentPoll.results())
+        elif err_code == -1:
+            await ctx.send(f"{ctx.send}, voting option ({vote}) was not an option in the poll")
         else:
-            currentPoll[0].addChoice(vote)
-            await ctx.send(f"{vote} added into possible choices!")
-            results = currentPoll[0].results()
-            await ctx.send(results)
+            await ctx.send("Unknown error with voting")
     else:
-        await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
+        await ctx.send(f"{ctx.author}, you silly sausage, there isn't a poll open!")
 
 client.run(CLIENT_TOKEN)
 
 #STUFF TO ADD
-#Image recognition
+#Image recognition /
 #im bored bot
 #Split up commands
 #Zombies calc
