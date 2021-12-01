@@ -14,9 +14,7 @@ import gamesnight
 from poll import *
 from dotenv import load_dotenv
 
-
-
-#ToundBot Version 2.11
+#ToundBot Version 2.14
 #discord.py Version 1.4.1
 
 client = commands.Bot(command_prefix='!')  # discord.Client()
@@ -28,7 +26,7 @@ CLIENT_TOKEN = os.getenv('CLIENT_TOKEN')
 #Global variables
 mute = False
 profanityLevel = 0
-version = 2.12
+version = 2.14
 livetime = ""
 currentTournaments = []
 currentGamesNights = []
@@ -174,7 +172,15 @@ async def botinfo(ctx):
 @client.command()
 async def about(ctx):
     await ctx.send(f"ToundBot is a Discord Chat Bot created by Tound for an experimental project. "
-                   f"\n The bot is written in Python and has various functions.")
+                   f"\nThe bot is written in Python and has various functions.")
+
+@client.command()
+async def functions(ctx):
+    await ctx.send(f"ToundBot Functions include:\n")
+    await ctx.send("Create polls, see !poll\n"
+                   "Create votes, see !vote\n"
+                   "Create Tournaments, see !tournament\n"
+                   "More to be added...")
 
 @client.command()
 async def remove(ctx):
@@ -213,13 +219,16 @@ async def joinVC(ctx, vChannel):
     source.volume = 5
     ctx.voice_client.play(source, after=lambda e: print("Done"))
     await ctx.send(f'ToundBot is joining {vChannel}')
-    ctx.voice_client.stop()
-    await ctx.voice_client.disconnect()
+    #ctx.voice_client.stop()
+    #await ctx.voice_client.disconnect()
 
 @client.command()
 async def leaveVC(ctx):
-    await ctx.voice_client.disconnect()
-    await ctx.send('ToundBot is leaving VC')
+    if ctx.voice_client != None:
+        await ctx.voice_client.disconnect()
+        await ctx.send('ToundBot is leaving VC')
+    else:
+        await ctx.send('ToundBot is not in a VC')
 
 @client.command()
 async def disconnect(ctx):
@@ -290,11 +299,11 @@ async def whatsthis(ctx, thing):
         await ctx.send("Oh snap, I need to learn that")
 
 def findAbbrev(ch):
-    if ch == 'general':
+    if ch == 'general' or ch == 'g' or ch == '1':
         return client.get_channel(238374962262441985) #"🌌 GENERAL CHIT CHAT"
-    elif ch == 'main':
+    elif ch == 'main' or ch == 'm' or ch == '2':
         return client.get_channel(279365748038696960) #"🌌 MAIN LOBBY"
-    elif ch == 'squad goals' or 'squad' or 'sg':
+    elif ch == 'squad goals' or ch == 'squad' or ch == 'sg':
         return client.get_channel(350613656356257792) #"🎮 Squad Goals"
     elif ch == 'duos':
         return client.get_channel(350613594162987020) #"🎮 Duos"
@@ -317,9 +326,12 @@ async def drag(ctx, ch1, ch2):
     if role_ok == True:
         channel1 = findAbbrev(ch1)
         channel2 = findAbbrev(ch2)
-        await ctx.send(f"Moving all members from {channel1.name} to {channel2.name}")
-        for member in channel1.members:
-            await member.move_to(channel2)
+        if channel1 == channel2:
+            await ctx.send("Members are already in the specified channel")
+        else:
+            await ctx.send(f"Moving all members from {channel1.name} to {channel2.name}")
+            for member in channel1.members:
+                await member.move_to(channel2)
     else:
         await ctx.send("Your role is not high enough for this command!")
 
@@ -453,38 +465,80 @@ async def gamesnight(ctx, *args):
 @client.command()
 async def poll(ctx,*args):
     global currentPoll
-    if currentPoll != None: # If there is no poll
+
+    print(args)
+
+    if currentPoll is None: # If there is no poll
         # If the command has no arguments
-        if len(args) == 0:
-            if len(currentPoll) == 0:
-                await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
-            else:
-                results = currentPoll.results()
-                await ctx.send(results)
+        if args is None:
+            results = currentPoll.results()
+            await ctx.send(results)
 
         # If the command has arguments
-        elif len(args) > 2:
-            if len(currentPoll) == 0:
-                if args[0] == "new":
-                    newPoll = poll(args)
-                    currentPoll.append(newPoll)
-                    await ctx.send("Poll created")
-            else:
-                await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
+        #!poll new lMAOOOO, me, you
+        elif len(args) > 1:
+            if args[0] == "new":
+                if args[1] == "once":
+                    content_string = ' '.join(args[2:])
+                    content_string = content_string.split(', ')
+                    title = content_string[0]
+                    track_voters = True
+                    answers = content_string[1:]
+                else:
+                    content_string = ' '.join(args[1:])
+                    content_string = content_string.split(', ')
+                    title = content_string[0]
+                    track_voters = False
+                    answers = content_string[1:]
 
-        elif args[0] == "end":
-            if len(currentPoll) == 0:
-                await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
+                currentPoll = Poll(title, track_voters, answers)
+                #newPoll = poll(args)
+                #currentPoll.append(newPoll)
+                await ctx.send("Poll created")
+                await ctx.send(currentPoll.results())
+
             else:
-                results = currentPoll.close()
-                await ctx.send(results)
-                currentPoll = None
+                await ctx.send("To create a new poll, the first argument must be 'new'!")
+
         else:
             await ctx.send("oof")
+
+    elif args[0] == "end":
+        if currentPoll is None:
+            await ctx.send("There are no polls active currently, use the '!poll new' command to start a new poll!")
+        else:
+            await ctx.send("The poll has ended!")
+            results = currentPoll.close()
+            await ctx.send(results)
+            del currentPoll
+            currentPoll = None
+
+
+    elif len(args) > 1  and args[0] == "vote":
+        content_string = ' '.join(args[1:])
+        content_string = content_string.split(", ")
+
+        choice = content_string[0]
+
+        err_code = currentPoll.vote(ctx.author,choice)
+        if err_code == 1:
+            await ctx.send(f"{ctx.author}, you have already voted - Vote disallowed")
+        elif err_code == 0:
+            await ctx.send(f"{ctx.author}, vote added")
+            await ctx.send(currentPoll.results())
+        elif err_code == -1:
+            await ctx.send(f"{ctx.send}, voting option ({choice}) was not an option in the poll")
+        else:
+            await ctx.send("Unknown error with voting")
+
     else:
         await ctx.send("The results of the current poll is as follows!")
         results = currentPoll.results()
         await ctx.send(results)
+
+
+
+
 
 @client.command()
 async def vote(ctx,vote):
