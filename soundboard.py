@@ -19,7 +19,14 @@ sounds = {"bruh": "bruh",
           "bing chilling": "bing-chilling",
           "stfu": "stfu",
           "ali a": "ali-a",
-          "sui": "sui"
+          "sui": "sui",
+          "call": "discord-call",
+          "john cena": "john-cena",
+          "butter dog": "butter-dog",
+          "sanic": "sanic",
+          "rl": "this-is-rocket-league",
+          "disconnected": "disconnected",
+          "milk": "evaporated-milk"
           }
 
 
