@@ -16,3 +16,4 @@ sounds/
 *.mp3
 *.txt
 soundboard.py
+assets/
